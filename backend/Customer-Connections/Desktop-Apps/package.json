@@ -1,0 +1,17 @@
+{
+  "name": "@aegis-cc/desktop-apps",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Domain logic for the Aegis Desktop <-> Command Center sync protocol: enrollment, check-in, update manifest resolution. No HTTP or DB dependencies -- see backend/api and Platform-Services/Databases for those.",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit -p ../../tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.0"
+  }
+}

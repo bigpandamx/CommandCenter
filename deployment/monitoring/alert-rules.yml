@@ -1,0 +1,448 @@
+# Prometheus Alert Rules for Aegis API
+groups:
+  - name: aegis_api_alerts
+    interval: 30s
+    rules:
+      # High error rate alert
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(http_requests_total{status=~"5.."}[5m]))
+          /
+          sum(rate(http_requests_total[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: "High API error rate detected"
+          description: "Error rate is {{ $value | humanizePercentage }} (threshold: 5%)"
+
+      # High latency alert
+      - alert: HighLatency
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (le)
+          ) > 1.0
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "High API latency detected"
+          description: "P95 latency is {{ $value }}s (threshold: 1s)"
+
+      # Very high latency alert
+      - alert: VeryHighLatency
+        expr: |
+          histogram_quantile(0.99,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (le)
+          ) > 5.0
+        for: 2m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: "Very high API latency detected"
+          description: "P99 latency is {{ $value }}s (threshold: 5s)"
+
+      # Low cache hit rate alert
+      - alert: LowCacheHitRate
+        expr: |
+          sum(rate(cache_hits_total[5m]))
+          /
+          (sum(rate(cache_hits_total[5m])) + sum(rate(cache_misses_total[5m]))) < 0.5
+        for: 10m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: "Low cache hit rate detected"
+          description: "Cache hit rate is {{ $value | humanizePercentage }} (threshold: 50%)"
+
+      # High memory usage alert
+      - alert: HighMemoryUsage
+        expr: process_resident_memory_bytes / 1024 / 1024 > 1000
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is {{ $value }}MB (threshold: 1000MB)"
+
+      # Critical memory usage alert
+      - alert: CriticalMemoryUsage
+        expr: process_resident_memory_bytes / 1024 / 1024 > 1500
+        for: 2m
+        labels:
+          severity: critical
+          component: system
+        annotations:
+          summary: "Critical memory usage detected"
+          description: "Memory usage is {{ $value }}MB (threshold: 1500MB)"
+
+      # High CPU usage alert
+      - alert: HighCPUUsage
+        expr: rate(process_cpu_seconds_total[5m]) * 100 > 80
+        for: 10m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is {{ $value }}% (threshold: 80%)"
+
+      # Redis down alert
+      - alert: RedisDown
+        expr: up{job="aegis-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: cache
+        annotations:
+          summary: "Redis appears to be down"
+          description: "Cannot connect to Redis cache"
+
+      # High file descriptor usage
+      - alert: HighFileDescriptorUsage
+        expr: |
+          process_open_fds / process_max_fds > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High file descriptor usage"
+          description: "Using {{ $value | humanizePercentage }} of available file descriptors"
+
+      # No traffic alert
+      - alert: NoTraffic
+        expr: sum(rate(http_requests_total[5m])) == 0
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "No API traffic detected"
+          description: "No requests received in the last 5 minutes"
+
+      # High cache invalidation rate
+      - alert: HighCacheInvalidationRate
+        expr: sum(rate(cache_invalidations_total[5m])) > 10
+        for: 5m
+        labels:
+          severity: info
+          component: cache
+        annotations:
+          summary: "High cache invalidation rate"
+          description: "Cache invalidations at {{ $value }}/sec (threshold: 10/sec)"
+
+      # Slow cache operations
+      - alert: SlowCacheOperations
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(cache_operations_duration_seconds_bucket[5m])) by (le, operation)
+          ) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: "Slow cache operations detected"
+          description: "Cache operation {{ $labels.operation }} P95 latency is {{ $value }}s"
+
+  # Database monitoring alerts
+  - name: aegis_database_alerts
+    interval: 30s
+    rules:
+      # Database connection pool exhausted
+      - alert: DatabaseConnectionPoolExhausted
+        expr: db_connection_pool_active >= db_connection_pool_size * 0.9
+        for: 2m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "Database connection pool nearly exhausted"
+          description: "Active connections: {{ $value | humanizePercentage }} of pool capacity (threshold: 90%)"
+
+      # High database query latency
+      - alert: HighDatabaseQueryLatency
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(db_query_duration_seconds_bucket[5m])) by (le)
+          ) > 1.0
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "High database query latency"
+          description: "P95 query latency is {{ $value }}s (threshold: 1s)"
+
+      # Database transaction errors
+      - alert: HighDatabaseErrorRate
+        expr: |
+          sum(rate(db_errors_total[5m]))
+          /
+          sum(rate(db_queries_total[5m])) > 0.01
+        for: 5m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "High database error rate"
+          description: "Database error rate is {{ $value | humanizePercentage }} (threshold: 1%)"
+
+      # Slow transactions
+      - alert: SlowDatabaseTransactions
+        expr: db_transactions_active > 10
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "Long-running database transactions detected"
+          description: "{{ $value }} active transactions for >5 minutes"
+
+  # Security monitoring alerts
+  - name: aegis_security_alerts
+    interval: 30s
+    rules:
+      # High authentication failure rate
+      - alert: HighAuthenticationFailureRate
+        expr: |
+          sum(rate(authentication_failures_total[5m])) > 10
+        for: 5m
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "High authentication failure rate"
+          description: "{{ $value }} authentication failures per second (threshold: 10/s)"
+
+      # Possible brute force attack
+      - alert: PossibleBruteForceAttack
+        expr: |
+          sum(rate(authentication_failures_total[1m])) by (user) > 5
+        for: 2m
+        labels:
+          severity: critical
+          component: security
+        annotations:
+          summary: "Possible brute force attack detected"
+          description: "User {{ $labels.user }} has {{ $value }} failed login attempts per second"
+
+      # Unauthorized access attempts
+      - alert: UnauthorizedAccessAttempts
+        expr: |
+          sum(rate(http_requests_total{status="401"}[5m])) > 20
+        for: 5m
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "High number of unauthorized access attempts"
+          description: "{{ $value }} 401 responses per second (threshold: 20/s)"
+
+      # Forbidden access spikes
+      - alert: ForbiddenAccessSpike
+        expr: |
+          sum(rate(http_requests_total{status="403"}[5m])) > 10
+        for: 5m
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "High number of forbidden access attempts"
+          description: "{{ $value }} 403 responses per second (threshold: 10/s)"
+
+  # Application health alerts
+  - name: aegis_application_alerts
+    interval: 30s
+    rules:
+      # Backend instance down
+      - alert: BackendInstanceDown
+        expr: up{job="aegis-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: application
+        annotations:
+          summary: "Backend instance is down"
+          description: "Backend instance {{ $labels.instance }} is not responding"
+
+      # Multiple backend instances down
+      - alert: MultipleBackendInstancesDown
+        expr: count(up{job="aegis-api"} == 0) >= 2
+        for: 1m
+        labels:
+          severity: critical
+          component: application
+        annotations:
+          summary: "Multiple backend instances are down"
+          description: "{{ $value }} backend instances are not responding"
+
+      # High API request rate (potential DDoS)
+      - alert: HighAPIRequestRate
+        expr: sum(rate(http_requests_total[1m])) > 1000
+        for: 2m
+        labels:
+          severity: warning
+          component: application
+        annotations:
+          summary: "Unusually high API request rate"
+          description: "{{ $value }} requests per second (threshold: 1000/s) - possible DDoS"
+
+      # Model upload failures
+      - alert: HighModelUploadFailureRate
+        expr: |
+          sum(rate(model_uploads_total{status="failed"}[10m]))
+          /
+          sum(rate(model_uploads_total[10m])) > 0.2
+        for: 10m
+        labels:
+          severity: warning
+          component: application
+        annotations:
+          summary: "High model upload failure rate"
+          description: "Model upload failure rate is {{ $value | humanizePercentage }} (threshold: 20%)"
+
+      # Webhook delivery failures
+      - alert: WebhookDeliveryFailures
+        expr: |
+          sum(rate(webhook_deliveries_total{status="failed"}[10m])) > 5
+        for: 10m
+        labels:
+          severity: warning
+          component: application
+        annotations:
+          summary: "High webhook delivery failure rate"
+          description: "{{ $value }} webhook delivery failures per second"
+
+  # Resource exhaustion alerts
+  - name: aegis_resource_alerts
+    interval: 30s
+    rules:
+      # Disk space low
+      - alert: DiskSpaceLow
+        expr: |
+          (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100 < 20
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "Low disk space"
+          description: "Only {{ $value }}% disk space available (threshold: 20%)"
+
+      # Disk space critical
+      - alert: DiskSpaceCritical
+        expr: |
+          (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100 < 10
+        for: 2m
+        labels:
+          severity: critical
+          component: system
+        annotations:
+          summary: "Critical disk space"
+          description: "Only {{ $value }}% disk space available (threshold: 10%)"
+
+      # High goroutine count (Python workers/threads)
+      - alert: HighWorkerThreadCount
+        expr: python_worker_threads > 100
+        for: 10m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High worker thread count"
+          description: "{{ $value }} worker threads active (threshold: 100)"
+
+      # Redis memory usage high
+      - alert: RedisMemoryUsageHigh
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.85
+        for: 5m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: "Redis memory usage high"
+          description: "Redis using {{ $value | humanizePercentage }} of max memory (threshold: 85%)"
+
+      # Redis memory critical
+      - alert: RedisMemoryCritical
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.95
+        for: 2m
+        labels:
+          severity: critical
+          component: cache
+        annotations:
+          summary: "Redis memory critical"
+          description: "Redis using {{ $value | humanizePercentage }} of max memory (threshold: 95%)"
+
+  # Backup and recovery alerts
+  - name: aegis_backup_alerts
+    interval: 1h
+    rules:
+      # Backup failed
+      - alert: BackupFailed
+        expr: time() - backup_last_success_timestamp > 7200  # 2 hours
+        for: 5m
+        labels:
+          severity: critical
+          component: backup
+        annotations:
+          summary: "Backup has not completed successfully"
+          description: "Last successful backup was {{ $value | humanizeDuration }} ago (threshold: 2h)"
+
+      # Backup overdue
+      - alert: BackupOverdue
+        expr: time() - backup_last_success_timestamp > 86400  # 24 hours
+        for: 5m
+        labels:
+          severity: critical
+          component: backup
+        annotations:
+          summary: "Backup is severely overdue"
+          description: "Last successful backup was {{ $value | humanizeDuration }} ago (threshold: 24h)"
+
+      # Backup size anomaly
+      - alert: BackupSizeAnomaly
+        expr: |
+          abs(backup_size_bytes - avg_over_time(backup_size_bytes[7d]))
+          /
+          avg_over_time(backup_size_bytes[7d]) > 0.5
+        for: 1h
+        labels:
+          severity: warning
+          component: backup
+        annotations:
+          summary: "Backup size anomaly detected"
+          description: "Backup size differs by {{ $value | humanizePercentage }} from 7-day average"
+
+  # SSL/TLS certificate alerts
+  - name: aegis_certificate_alerts
+    interval: 1h
+    rules:
+      # Certificate expiring soon
+      - alert: SSLCertificateExpiringSoon
+        expr: (ssl_certificate_expiry_seconds - time()) / 86400 < 30
+        for: 1h
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "SSL certificate expiring soon"
+          description: "SSL certificate expires in {{ $value }} days (threshold: 30 days)"
+
+      # Certificate expiring very soon
+      - alert: SSLCertificateExpiringVerySoon
+        expr: (ssl_certificate_expiry_seconds - time()) / 86400 < 7
+        for: 1h
+        labels:
+          severity: critical
+          component: security
+        annotations:
+          summary: "SSL certificate expiring very soon"
+          description: "SSL certificate expires in {{ $value }} days (threshold: 7 days)"

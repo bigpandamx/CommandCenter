@@ -1,0 +1,28 @@
+{
+  "name": "@aegis-cc/admin-portal",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Internal console for Aegis staff: manage organizations, enrollment tokens, license usage, and telemetry. Talks to backend/api, never directly to the database.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "ADMIN_API_BASE_URL=http://localhost:8080 tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "next": "^15.0.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "tailwindcss": "^3.4.0",
+    "postcss": "^8.4.0",
+    "autoprefixer": "^10.4.0",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.0"
+  }
+}

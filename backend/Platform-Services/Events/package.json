@@ -1,0 +1,17 @@
+{
+  "name": "@aegis-cc/events",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Command Center as the event bus hub: a durable, append-only, idempotent event log any service-account-authenticated caller can publish to and poll from. Deliberately not a message broker -- see EVENTS.md at the repo root for the envelope contract and why this is sized for a handful of services, not a rewrite of Kafka.",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit -p ../../../tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.0"
+  }
+}

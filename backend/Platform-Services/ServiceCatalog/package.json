@@ -1,0 +1,17 @@
+{
+  "name": "@aegis-cc/service-catalog",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The product/service catalog: services, a per-tier availability matrix (included/addable/unavailable), org-level add-on selections, and admin disable overrides. Computes the four-state ServiceAvailability (available/locked/trial/disabled) a UI actually renders. See databases/postgres/migrations/0024_service_catalog.sql for the full schema reasoning.",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit -p ../../../tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.0"
+  }
+}

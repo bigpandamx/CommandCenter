@@ -1,0 +1,17 @@
+{
+  "name": "@aegis-cc/feature-flags",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Runtime-toggleable feature flags: boolean kill switches plus percentage-based rollouts, evaluated locally against Command Center's own database. Deliberately NOT a cross-system service -- Aegis owns an independent, mirrored equivalent for its own behaviors, so checking a flag never depends on the other system being reachable. See databases/postgres/migrations/0022_feature_flags.sql for the full reasoning.",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit -p ../../../tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.0"
+  }
+}

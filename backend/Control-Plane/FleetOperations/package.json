@@ -1,0 +1,17 @@
+{
+  "name": "@aegis-cc/fleet-operations",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Every deployed customer Aegis instance reports its own status into Command Center: version, installed modules, license state, self-reported health score, failed jobs, pending migrations. Distinct from Desktop-Apps' per-device telemetry -- this is per-organization, platform-level reporting from the customer's own deployed Aegis backend. Staleness is derived by Command Center's own clock, not self-reported. See CUTOVER.md.",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit -p ../../../tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.0"
+  }
+}

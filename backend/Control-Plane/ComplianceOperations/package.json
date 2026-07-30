@@ -1,0 +1,17 @@
+{
+  "name": "@aegis-cc/compliance-operations",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The Compliance Operations Dashboard -- the single screen a compliance team opens every morning. Aggregates already-existing capabilities (source fetch tracking, the Incoming Queue, Obligation Review confidence, Impact Assessment, Distribution Center scheduling) into one view. Computes nothing new from scratch; see CUTOVER.md for the interpretation choices made explicit in types.ts.",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit -p ../../../tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.0"
+  }
+}

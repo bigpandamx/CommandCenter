@@ -1,0 +1,17 @@
+{
+  "name": "@aegis-cc/jobs",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A single home for Aegis's own background work -- real, existing functions (Compliance ingestion, Compliance Analysis, Announcement Publishing, Threat Intel retention cleanup) that were each already documented as 'not yet wired to a live cron,' now genuinely scheduled, with a shared execution history and manual-trigger surface. See src/types.ts for what's deliberately NOT included, and why.",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit -p ../../../tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.0"
+  }
+}

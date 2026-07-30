@@ -1,0 +1,17 @@
+{
+  "name": "@aegis-cc/entitlements",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The Entitlement Engine: single source of truth for 'is this organization allowed to do X right now,' built on top of Subscriptions' resolved policy. Every service checks/asserts entitlement through here instead of scattering plan checks throughout the codebase -- the same cross-cutting role Authentication plays for identity.",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit -p ../../../tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.0"
+  }
+}

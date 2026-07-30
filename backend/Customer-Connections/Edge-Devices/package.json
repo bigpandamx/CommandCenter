@@ -1,0 +1,17 @@
+{
+  "name": "@aegis-cc/edge-devices",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Fleet management for Aegis enforcement agents (customer-deployed hybrid/on-prem policy enforcement components), consolidated in from Aegis's enforcement_agents/agent_events. See CUTOVER.md.",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit -p ../../../tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.0"
+  }
+}

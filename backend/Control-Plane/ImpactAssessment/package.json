@@ -1,0 +1,17 @@
+{
+  "name": "@aegis-cc/impact-assessment",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Impact Assessment Engine: given a compliance obligation, decides which organizations are affected and why. Depends on both Compliance and Organizations as first-class inputs. Scoped to country/industry matching only this round -- Products, AI Usage, and Compliance Packs are named in the original vision but not matched yet. See CUTOVER.md.",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit -p ../../../tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.0"
+  }
+}

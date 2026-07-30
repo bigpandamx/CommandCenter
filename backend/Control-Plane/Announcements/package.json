@@ -1,0 +1,17 @@
+{
+  "name": "@aegis-cc/announcements",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Staff-authored broadcast announcements (draft -> published -> archived), audience-scoped to staff, customers, or both. New, not migrated -- Aegis's own Notification model is per-user/per-org, not a broadcast system.",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit -p ../../../tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.0"
+  }
+}

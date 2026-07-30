@@ -1,0 +1,17 @@
+{
+  "name": "@aegis-cc/subscriptions",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Promoted from Platform-Services/Subscriptions to a first-class Platform Service: subscription plans, billing, usage/quota tracking, and entitlement policy (per-tier device caps, channel access). Nearly every other service either checks entitlements against it (device enrollment, channel access) or records consumption against it (AI Chat's token usage) -- the same cross-cutting-infrastructure role Authentication plays for identity, not an independent feature domain like Compliance or Tickets.",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit -p ../../../tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.0"
+  }
+}

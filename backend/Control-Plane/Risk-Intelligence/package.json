@@ -1,0 +1,17 @@
+{
+  "name": "@aegis-cc/risk-intelligence",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Cross-org network risk insight generation (anomaly/trend/root-cause/correlation detection), adapted from Aegis's per-org RiskIntelligenceService. Reads Control-Plane/Threat-Intelligence's RiskSignalAggregate data.",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit -p ../../../tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.0"
+  }
+}

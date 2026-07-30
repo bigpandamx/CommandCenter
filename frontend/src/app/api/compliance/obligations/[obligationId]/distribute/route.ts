@@ -1,0 +1,10 @@
+import { NextResponse } from "next/server";
+import { getSessionToken } from "../../../../../../lib/session";
+import { handleDistribute } from "../../../../../../lib/routeHandlers/compliance";
+
+export async function POST(_request: Request, { params }: { params: Promise<{ obligationId: string }> }) {
+  const sessionToken = await getSessionToken();
+  const { obligationId } = await params;
+  const result = await handleDistribute(sessionToken, obligationId);
+  return NextResponse.json(result.body, { status: result.status });
+}

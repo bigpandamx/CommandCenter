@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-canvas text-text-primary font-sans antialiased;
+  }
+
+  ::selection {
+    @apply bg-ok/25 text-text-primary;
+  }
+
+  /* Visible keyboard focus everywhere -- an ops console is used by people
+     tabbing through forms far more than clicking, and the default browser
+     outline reads poorly against a dark surface. */
+  :focus-visible {
+    outline: 2px solid #4fd1a5;
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}

@@ -1,0 +1,173 @@
+# Aegis dev environment -- moved here from Aegis's own repo
+# (docker-compose.dev.yml) per the new workflow: Aegis engineers develop
+# against the copy of Aegis embedded in this repo (../../../Aegis/), then
+# use scripts/sync-to-aegis.sh to push finished changes back to the
+# canonical Aegis repo. See ../../../scripts/README.md and
+# ../../../DEV_ENVIRONMENT.md for the full workflow.
+#
+# Build contexts and source volumes below point into ../../../Aegis/ --
+# that directory must exist and be a checkout of the Aegis repo (it's
+# already embedded in this repo per the original project layout). If it's
+# missing or stale, run scripts/sync-from-aegis.sh first.
+#
+# Everything else (service names, ports, env vars) is unchanged from
+# Aegis's original docker-compose.dev.yml so existing muscle memory and
+# any external tooling pointed at these ports keeps working.
+
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ../../../Aegis
+      dockerfile: Dockerfile
+    container_name: aegis-backend-dev
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://user:password@db:5432/aegis_db_dev
+      - SECRET_KEY=dev-secret-key-change-in-production
+      - JWT_ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - REDIS_URL=redis://redis:6379/0
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - CORS_ORIGINS=http://localhost:3000,http://localhost:3001,http://localhost:8001
+      - PROMETHEUS_ENABLED=true
+    ports:
+      - "8001:8000"
+    volumes:
+      - ../../../Aegis/backend:/workspace
+    depends_on:
+      - db
+      - redis
+    restart: unless-stopped
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  db:
+    image: postgres:15
+    container_name: aegis-db-dev
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: aegis_db_dev
+    ports:
+      - "5433:5432"
+    volumes:
+      - aegis_db_dev_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: aegis-redis-dev
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6381:6379"
+    volumes:
+      - aegis_redis_dev_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: aegis-prometheus-dev
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--storage.tsdb.retention.time=30d'
+    ports:
+      - "9090:9090"
+    volumes:
+      # Points at Command Center's own copy now, not Aegis's -- monitoring
+      # config is a deployment/ops concern that belongs here going forward,
+      # decoupled from whatever's currently checked out in the embedded
+      # Aegis/ copy. Edit these in place, not in Aegis/monitoring/.
+      - ../../monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ../../monitoring/alert-rules.yml:/etc/prometheus/alert-rules.yml
+      - aegis_prometheus_dev_data:/prometheus
+    restart: unless-stopped
+    depends_on:
+      - backend
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: aegis-grafana-dev
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=http://localhost:3001
+    volumes:
+      - aegis_grafana_dev_data:/var/lib/grafana
+      - ../../monitoring/dashboards:/etc/grafana/provisioning/dashboards
+      - ../../monitoring/datasources:/etc/grafana/provisioning/datasources
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+
+  frontend:
+    build:
+      context: ../../../Aegis/frontend
+      dockerfile: Dockerfile
+    container_name: aegis-frontend-dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../../../Aegis/frontend:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8001
+      - NEXT_PUBLIC_WS_URL=ws://localhost:8001/ws
+      - INTERNAL_API_URL=http://backend:8000
+      - NODE_ENV=development
+    restart: unless-stopped
+    depends_on:
+      - backend
+    command: npm run dev
+
+  qwen-runner:
+    build:
+      context: ../../../Aegis/containers/models/ollama
+      dockerfile: Dockerfile
+    container_name: aegis-model-qwen-dev
+    expose:
+      - "11434"
+    volumes:
+      - ollama_qwen_dev_data:/models
+    environment:
+      - OLLAMA_MODELS=/models
+      - OLLAMA_HOST=0.0.0.0
+      - OLLAMA_NO_TELEMETRY=1
+      - OLLAMA_MODEL=qwen2.5:7b
+    restart: unless-stopped
+
+  mistral-runner:
+    build:
+      context: ../../../Aegis/containers/models/ollama
+      dockerfile: Dockerfile
+    container_name: aegis-model-mistral-dev
+    expose:
+      - "11434"
+    volumes:
+      - ollama_mistral_dev_data:/models
+    environment:
+      - OLLAMA_MODELS=/models
+      - OLLAMA_HOST=0.0.0.0
+      - OLLAMA_NO_TELEMETRY=1
+      - OLLAMA_MODEL=mistral:7b
+    restart: unless-stopped
+
+volumes:
+  aegis_db_dev_data:
+  aegis_redis_dev_data:
+  aegis_prometheus_dev_data:
+  aegis_grafana_dev_data:
+  ollama_qwen_dev_data:
+  ollama_mistral_dev_data:

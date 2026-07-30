@@ -1,0 +1,24 @@
+{
+  "name": "@aegis-cc/databases",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Postgres implementations of every repository port defined by the domain packages (Desktop-Apps, Organizations, Authentication, Compliance, Edge-Devices, Tickets, Threat-Intelligence, Risk-Intelligence, Subscriptions, Feature Flags, Events, Service Catalog). SQL migrations live in databases/postgres/migrations at the repo root.",
+  "main": "src/index.ts",
+  "dependencies": {
+    "@aegis-cc/desktop-apps": "*",
+    "@aegis-cc/feature-flags": "*",
+    "@aegis-cc/events": "*",
+    "@aegis-cc/service-catalog": "*",
+    "pg": "^8.12.0",
+    "stripe": "^16.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/pg": "^8.11.0",
+    "typescript": "^5.5.0"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  }
+}

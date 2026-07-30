@@ -1,0 +1,17 @@
+{
+  "name": "@aegis-cc/identity",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Human-readable global display IDs (ORG-00001234, TKT-00129283), generated alongside -- not replacing -- the UUID primary keys used everywhere else in this codebase. Only Tickets actually generates real displayIds this round; other kinds are named vocabulary, not wired-up entities yet. See CUTOVER.md.",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit -p ../../../tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.0"
+  }
+}

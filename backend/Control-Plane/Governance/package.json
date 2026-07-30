@@ -1,0 +1,17 @@
+{
+  "name": "@aegis-cc/governance",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Governance Console: platform-level policies (staff-authored, tied to canonical controls) and staff-reported policy violations -- the broader visibility surface an operator needs beyond a single narrow Compliance Agent. See CUTOVER.md and 0047_governance.sql for the full reasoning, including why this is distinct from Aegis's own per-org Policy records.",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit -p ../../../tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.0"
+  }
+}

@@ -1,0 +1,223 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  # Split from a single sequential job into independent parallel jobs --
+  # matches the actual pattern Aegis's own .github/workflows/ci.yml uses
+  # (test / lint-dockerfile / security-scan / api-docs, all independent),
+  # not just its specific tools. Typecheck needs no Postgres and is pure
+  # static analysis, so it doesn't need to wait behind (or block) the
+  # slower test-and-build job -- both start immediately and report
+  # independently, giving faster overall feedback than one long job ever
+  # could, and more granular information on a PR (a typecheck-only
+  # failure looks different from a test failure, and now shows as one).
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Remove offline type shims
+        # types/node-shims.d.ts is a hand-written stand-in for @types/node,
+        # @types/pg, fastify's and zod's bundled types -- it exists only
+        # because the sandbox this repo was originally built in had no
+        # network access to npm. Now that real `npm install` has pulled in
+        # the real packages, this file's ambient `declare module "pg"` (etc.)
+        # would conflict with their real type declarations. See README.md's
+        # "Delete types/node-shims.d.ts once you npm install for real" note
+        # -- this step is that instruction, automated.
+        run: rm -f types/node-shims.d.ts
+
+      - name: Typecheck (root -- Control-Plane, Customer-Connections, Platform-Services)
+        run: npm run typecheck
+
+      - name: Typecheck (backend/api)
+        run: npm run typecheck --workspace=backend/api
+
+      - name: Typecheck (backend/Platform-Services/Databases)
+        run: npm run typecheck --workspace=backend/Platform-Services/Databases
+
+      - name: Typecheck (frontend)
+        run: npm run typecheck --workspace=frontend
+
+  test-and-build:
+    name: Test & Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: aegis_cc
+          POSTGRES_PASSWORD: aegis_cc_test
+          POSTGRES_DB: aegis_cc_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U aegis_cc"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://aegis_cc:aegis_cc_test@localhost:5432/aegis_cc_test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Remove offline type shims
+        # Same reasoning as the typecheck job's identical step -- this
+        # job doesn't run typecheck itself, but backend/api's own start
+        # script (tsx, no separate build step) would otherwise still
+        # pick up the ambient shim declarations at runtime type-resolution
+        # time in some tsx configurations, and it's one line to keep both
+        # jobs' environments consistent regardless.
+        run: rm -f types/node-shims.d.ts
+
+      - name: Apply migrations to the real Postgres service
+        run: npx tsx backend/scripts/run-migrations.ts
+
+      - name: Run the full backend test suite
+        run: npm test
+
+      # There's no compiled dist/ output for backend/api to run instead --
+      # every route file imports across package boundaries outside
+      # backend/api/src, so a traditional tsc-with-emit build doesn't apply
+      # cleanly here (same as every other package in this repo). It runs
+      # via tsx directly, in production too, same as dev.
+      - name: Boot backend/api and check /healthz
+        run: |
+          npm run start --workspace=backend/api &
+          SERVER_PID=$!
+          # Give it a few seconds to bind before checking -- if it crashes
+          # on startup, curl will fail below and the step fails loudly
+          # rather than the background process silently dying unnoticed.
+          sleep 5
+          curl -f http://localhost:8080/healthz
+          kill $SERVER_PID
+
+  # Independent from test-and-build, not just tacked onto it -- the
+  # frontend's lib-level test suite and `next build` need neither
+  # Postgres nor migrations, so gating them behind test-and-build's
+  # Postgres service startup was pure unnecessary latency, and bundling
+  # them as two steps inside a much larger job meant a backend test
+  # failure could stop the job before these steps ever ran at all,
+  # leaving "did the frontend suite pass" genuinely unknown on a red
+  # backend run. Same job-independence reasoning as the
+  # typecheck/test-and-build/e2e split -- frontend's own typecheck
+  # already lives in the typecheck job; this job is specifically the
+  # frontend's runtime test suite and its production build.
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Remove offline type shims
+        # Same reasoning as every other job's identical step -- these
+        # exist only for typechecking without real @types/node/react
+        # installed, and a real install makes them redundant (and, for
+        # a couple of the hand-rolled ambient declarations, actively
+        # conflicting with the real, more precise types).
+        run: rm -f types/node-shims.d.ts
+
+      - name: Run admin-portal's test suite
+        run: npm test --workspace=frontend
+
+      - name: Build frontend
+        run: npm run build --workspace=frontend
+        env:
+          # admin-portal's config throws at startup if this is unset (see
+          # frontend/README.md) -- a build-time placeholder is fine
+          # here since `next build` doesn't make real requests, only a
+          # real deployment needs a real value.
+          ADMIN_API_BASE_URL: "http://localhost:8080"
+
+  # Separate from test-and-build (rather than tacked onto its end) so a
+  # slow or flaky E2E run doesn't block the faster, more deterministic
+  # unit/integration suite from reporting -- same job-independence
+  # reasoning as the typecheck/test-and-build split above. Uses its own
+  # Postgres service and its own migration pass; nothing is shared with
+  # test-and-build's database, deliberately -- E2E's bootstrap-staff.ts
+  # step permanently seeds an admin account, and that's not something
+  # the other job's tests should ever see.
+  e2e:
+    name: E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: aegis_cc
+          POSTGRES_PASSWORD: aegis_cc_test
+          POSTGRES_DB: aegis_cc_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U aegis_cc"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://aegis_cc:aegis_cc_test@localhost:5432/aegis_cc_test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Remove offline type shims
+        run: rm -f types/node-shims.d.ts
+
+      - name: Apply migrations to the real Postgres service
+        run: npx tsx backend/scripts/run-migrations.ts
+
+      - name: Run the E2E suite
+        # coreFlows.e2e.test.ts's own before() hook boots backend/api as
+        # a subprocess and bootstraps a first admin account -- this step
+        # doesn't need its own server-boot step the way test-and-build's
+        # healthz check does, the suite manages that lifecycle itself
+        # (see backend/test/test-e2e/serverHarness.ts).
+        run: npm run test:e2e

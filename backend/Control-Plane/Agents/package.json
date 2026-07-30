@@ -1,0 +1,17 @@
+{
+  "name": "@aegis-cc/agents",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Staff-facing task automation (priority queue, capability routing, per-agent stats), adapted from Aegis's own AgentOrchestrator. Real agents operate read-only over Tickets, Threat-Intelligence, Compliance, and Risk-Intelligence.",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit -p ../../../tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.0"
+  }
+}

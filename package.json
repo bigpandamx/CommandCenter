@@ -1,0 +1,46 @@
+{
+  "name": "aegis-command-center",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Internal control plane used by Aegis staff to manage organizations, subscriptions/billing, compliance, tickets, threat intelligence, risk intelligence, fleet telemetry, staff task automation, announcements, and the AI Chat escalation path for the Aegis desktop product.",
+  "workspaces": [
+    "backend/api",
+    "frontend",
+    "backend/Customer-Connections/Desktop-Apps",
+    "backend/Customer-Connections/Edge-Devices",
+    "backend/Customer-Connections/AIChat",
+    "backend/Platform-Services/Authentication",
+    "backend/Platform-Services/Databases",
+    "backend/Platform-Services/Subscriptions",
+    "backend/Platform-Services/Entitlements",
+    "backend/Platform-Services/PlatformHealth",
+    "backend/Platform-Services/Jobs",
+    "backend/Platform-Services/Identity",
+    "backend/Platform-Services/FeatureFlags",
+    "backend/Platform-Services/Events",
+    "backend/Platform-Services/ServiceCatalog",
+    "backend/Control-Plane/Organizations",
+    "backend/Control-Plane/Compliance",
+    "backend/Control-Plane/FleetOperations",
+    "backend/Control-Plane/ImpactAssessment",
+    "backend/Control-Plane/ComplianceOperations",
+    "backend/Control-Plane/Governance",
+    "backend/Control-Plane/Tickets",
+    "backend/Control-Plane/Threat-Intelligence",
+    "backend/Control-Plane/Risk-Intelligence",
+    "backend/Control-Plane/Agents",
+    "backend/Control-Plane/Announcements",
+    "backend/Control-Plane/Publishing"
+  ],
+  "scripts": {
+    "test": "tsx --test backend/Customer-Connections/*/test/*.test.ts backend/Platform-Services/*/test/*.test.ts backend/Control-Plane/*/test/*.test.ts backend/test/test-integration/*.test.ts backend/test/test-security/*.test.ts",
+    "test:e2e": "tsx --test backend/test/test-e2e/*.e2e.test.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.0"
+  }
+}

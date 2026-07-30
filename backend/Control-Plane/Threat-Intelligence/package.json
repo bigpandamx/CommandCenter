@@ -1,0 +1,17 @@
+{
+  "name": "@aegis-cc/threat-intelligence",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Cross-org threat pattern and prompt-abuse-signature library (Phase 1: library + distribution). Migrated from Aegis's network_intelligence.py -- see CUTOVER.md and src/types.ts.",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit -p ../../../tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.0"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "@aegis-cc/ai-chat",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Foundation for the 'true Aegis AI' escalation path: an enrolled Desktop-Apps device escalates to Command Center for deeper reasoning / longer responses than its local light assistant can produce. Genuinely new -- Aegis's own chat page is a governance-testing tool, not a product assistant.",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit -p ../../../tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.0"
+  }
+}

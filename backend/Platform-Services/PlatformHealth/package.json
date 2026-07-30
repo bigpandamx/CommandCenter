@@ -1,0 +1,17 @@
+{
+  "name": "@aegis-cc/platform-health",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Internal-only operational visibility: queue depth (Compliance's Incoming Queue, Agents' task queue), AI provider health, and token usage, all backed by real data. Deliberately excludes Cache Hit Ratios and Regional Outages -- no cache or multi-region monitoring exists in this system to report on honestly. See CUTOVER.md.",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit -p ../../../tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.0"
+  }
+}

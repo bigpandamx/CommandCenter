@@ -1,0 +1,24 @@
+{
+  "name": "@aegis-cc/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Command Center HTTP API -- Aegis Desktop sync protocol, staff/device/service-account auth, and admin + service-facing routes for Organizations, Billing, Edge-Devices, Compliance, Tickets, Threat-Intelligence, and Risk-Intelligence.",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
+    "build": "tsc --noEmit -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "fastify": "^4.28.0",
+    "pg": "^8.12.0",
+    "zod": "^3.23.0",
+    "tsx": "^4.16.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/pg": "^8.11.0",
+    "typescript": "^5.5.0"
+  }
+}
